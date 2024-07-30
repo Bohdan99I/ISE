@@ -9,8 +9,10 @@ const form = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
 const guard = document.querySelector('.guard');
 const lightbox = new SimpleLightbox('.gallery a');
+
 let query = '';
 let page = 1;
+
 const options = {
   root: null,
   rootMargin: '100px',
@@ -19,15 +21,17 @@ const options = {
 
 const observer = new IntersectionObserver(onPagination, options);
 
-form.addEventListener('change', onInput);
-form.addEventListener('submit', onSubmit);
+if (form) {
+  form.addEventListener('change', onInput);
+  form.addEventListener('submit', onSubmit);
+}
 
 async function addGallerySubmit() {
   try {
     const response = await getGallery(query, page);
     addImages(response);
 
-    if (page !== totalPages) {
+    if (page < totalPages) {
       observer.observe(guard);
     }
   } catch (error) {
@@ -45,7 +49,7 @@ async function addGalleryPag() {
     createGalleryItem(images);
     lightbox.refresh();
 
-    if (page > totalPages) {
+    if (page >= totalPages) {
       Notiflix.Notify.warning(
         "We're sorry, but you've reached the end of search results."
       );
@@ -63,7 +67,9 @@ function onInput(evt) {
 function onSubmit(evt) {
   evt.preventDefault();
   page = 1;
-  gallery.innerHTML = '';
+  if (gallery) {
+    gallery.innerHTML = '';
+  }
 
   if (!evt.target.elements.searchQuery.value) {
     Notiflix.Notify.failure('Please, enter a search query');
@@ -76,7 +82,9 @@ function addImages(response) {
   const images = response.data.hits;
 
   if (!images.length) {
-    gallery.innerHTML = '';
+    if (gallery) {
+      gallery.innerHTML = '';
+    }
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
@@ -85,7 +93,6 @@ function addImages(response) {
     Notiflix.Notify.success(
       `Hooray! We found ${response.data.totalHits} images.`
     );
-
     lightbox.refresh();
   }
 }
@@ -97,7 +104,7 @@ function onPagination(entries, observer) {
     if (entry.isIntersecting) {
       page += 1;
       addGalleryPag();
-      if (page === totalPages) {
+      if (page >= totalPages) {
         observer.unobserve(guard);
       }
     }
