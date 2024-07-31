@@ -31,7 +31,7 @@ async function addGallerySubmit() {
     const response = await getGallery(query, page);
     addImages(response);
 
-    if (page < totalPages) {
+    if (page !== totalPages) {
       observer.observe(guard);
     }
   } catch (error) {
